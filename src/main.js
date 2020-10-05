@@ -53,6 +53,21 @@ Spotfire.initialize(async (mod) => {
         mod.controls.errorOverlay.hide();
 
         modDiv.style.height = windowSize.height + "px";
+        var columnsCalculation = 0;
+        var textCardWidthCalculation = "";
+        if (windowSize.width < 400) {
+            columnsCalculation = 1;
+            textCardWidthCalculation = windowSize.width + "px";
+        } else if (windowSize.width < 685) {
+            columnsCalculation = 2;
+            textCardWidthCalculation = windowSize.width * 0.5 + "px";
+        } else if (windowSize.width < 690) {
+            columnsCalculation = 3;
+            textCardWidthCalculation = windowSize.width * 0.3 + "px";
+        } else {
+            columnsCalculation = 4;
+            textCardWidthCalculation = windowSize.width * 0.25 + "px";
+        }
 
         //console.log("Data View exp: " + (await dataView.hasExpired()));
         /**
@@ -67,7 +82,7 @@ Spotfire.initialize(async (mod) => {
         }
 
         let textCardHeight = "fit-content";
-        let textCardWidth = windowSize.width * 0.5 + "px";
+        let textCardWidth = textCardWidthCalculation;
         let textCardPadding = "0.5%";
         let textCardMargin = "0";
         let textCardBackgroundColor = rows[0].color().hexCode;
@@ -140,7 +155,7 @@ function createDiv(className, content, height, width, padding, margin, colour, a
     textCardDiv.style.padding = padding;
     textCardDiv.style.margin = margin;
     //textCardDiv.style.float = "left";
-    textCardDiv.style.flex = "1 1 40%";
+    textCardDiv.style.flex = "1 1 " + width;
 
     //console.log(annotation);
     if (annotation !== null) {
