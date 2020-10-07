@@ -37,7 +37,7 @@ Spotfire.initialize(async (mod) => {
          * NON-GLOBALS
          */
 
-        const cardsToLoad = 15;
+        const cardsToLoad = 30;
 
         /**
          * Check the data view for errors
@@ -55,18 +55,26 @@ Spotfire.initialize(async (mod) => {
         modDiv.style.height = windowSize.height + "px";
         var columnsCalculation = 0;
         var textCardWidthCalculation = "";
-        if (windowSize.width < 400) {
+        if (windowSize.width < 300) {
             columnsCalculation = 1;
-            textCardWidthCalculation = windowSize.width + "px";
-        } else if (windowSize.width < 685) {
+            //textCardWidthCalculation = 100/columnsCalculation + "vw";
+            textCardWidthCalculation = "100%";
+        } else if (windowSize.width >= 300 && windowSize.width < 700) {
             columnsCalculation = 2;
-            textCardWidthCalculation = windowSize.width * 0.5 + "px";
-        } else if (windowSize.width < 690) {
+            //textCardWidthCalculation = 100/columnsCalculation + "vw";
+            textCardWidthCalculation = "50%";
+        } else if (windowSize.width >= 700 && windowSize.width < 1200) {
             columnsCalculation = 3;
-            textCardWidthCalculation = windowSize.width * 0.3 + "px";
-        } else {
+            //textCardWidthCalculation = 100/columnsCalculation + "vw";
+            textCardWidthCalculation = "30%";
+        } else if (windowSize.width >= 1200 && windowSize.width < 1500) {
             columnsCalculation = 4;
-            textCardWidthCalculation = windowSize.width * 0.25 + "px";
+            //textCardWidthCalculation = 100/columnsCalculation + "vw";
+            textCardWidthCalculation = "25%";
+        } else if (windowSize.width >= 1500) {
+            columnsCalculation = 5;
+            //textCardWidthCalculation = 100/columnsCalculation + "vw";
+            textCardWidthCalculation = "20%";
         }
 
         //console.log("Data View exp: " + (await dataView.hasExpired()));
@@ -81,8 +89,7 @@ Spotfire.initialize(async (mod) => {
             return;
         }
 
-        let textCardHeight = "fit-content";
-        let textCardWidth = textCardWidthCalculation;
+        let textCardWidth = "";
         let textCardPadding = "0.5%";
         let textCardMargin = "0";
         let textCardBackgroundColor = rows[0].color().hexCode;
@@ -90,7 +97,6 @@ Spotfire.initialize(async (mod) => {
 
         var returnedObject = renderTextCards(
             rows,
-            textCardHeight,
             textCardWidth,
             textCardPadding,
             textCardMargin,
@@ -101,6 +107,8 @@ Spotfire.initialize(async (mod) => {
         );
         modDiv.appendChild(returnedObject.fragment);
         prevIndex = returnedObject.startIndex;
+        console.log(`windowSize: ${windowSize.width}x${windowSize.height}\r\n`);
+
         console.log("previndex after init: " + prevIndex);
 
         /*          * Scroll Event Listener          */
@@ -114,7 +122,6 @@ Spotfire.initialize(async (mod) => {
 
                 var returnedObject = renderTextCards(
                     rows,
-                    textCardHeight,
                     textCardWidth,
                     textCardPadding,
                     textCardMargin,
@@ -148,14 +155,16 @@ Spotfire.initialize(async (mod) => {
  * @param {string} className class name of the div element.
  * @param {string | HTMLElement} content Content inside the div
  */
-function createDiv(className, content, height, width, padding, margin, colour, annotation) {
+function createDiv(className, content, width, padding, margin, colour, annotation) {
     var textCardDiv = document.createElement("div");
-    textCardDiv.style.height = height;
-    textCardDiv.style.width = width;
+    //textCardDiv.style.height = "10%";
+    textCardDiv.style.width = "250px";
     textCardDiv.style.padding = padding;
     textCardDiv.style.margin = margin;
     //textCardDiv.style.float = "left";
-    textCardDiv.style.flex = "1 1 " + width;
+    //textCardDiv.style.flex = "1 1 9%";
+    //textCardDiv.style.flexBasis = width;
+    textCardDiv.style.flexGrow = "1";
 
     //console.log(annotation);
     if (annotation !== null) {
@@ -185,7 +194,7 @@ function createDiv(className, content, height, width, padding, margin, colour, a
     return textCardDiv;
 }
 
-function renderTextCards(rows, height, width, padding, margin, colour, prevIndex, cardsToLoad, rerender) {
+function renderTextCards(rows, width, padding, margin, colour, prevIndex, cardsToLoad, rerender) {
     if (rerender) {
         document.querySelector("#text-card-container").innerHTML = "";
     }
@@ -214,7 +223,7 @@ function renderTextCards(rows, height, width, padding, margin, colour, prevIndex
             //var truncatedTextCardContent = truncateString(textCardContent, 125);
             var annotation = getDataValue(rows[index], "Annotation");
             colour = rows[index].color().hexCode;
-            let newDiv = createDiv("text-card", textCardContent, height, width, padding, margin, colour, annotation);
+            let newDiv = createDiv("text-card", textCardContent, width, padding, margin, colour, annotation);
             newDiv.onclick = (e) => {
                 console.log(newDiv.textContent);
                 rows[index].mark("Replace");
