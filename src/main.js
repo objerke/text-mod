@@ -53,29 +53,6 @@ Spotfire.initialize(async (mod) => {
         mod.controls.errorOverlay.hide();
 
         modDiv.style.height = windowSize.height + "px";
-        var columnsCalculation = 0;
-        var textCardWidthCalculation = "";
-        if (windowSize.width < 300) {
-            columnsCalculation = 1;
-            //textCardWidthCalculation = 100/columnsCalculation + "vw";
-            textCardWidthCalculation = "100%";
-        } else if (windowSize.width >= 300 && windowSize.width < 700) {
-            columnsCalculation = 2;
-            //textCardWidthCalculation = 100/columnsCalculation + "vw";
-            textCardWidthCalculation = "50%";
-        } else if (windowSize.width >= 700 && windowSize.width < 1200) {
-            columnsCalculation = 3;
-            //textCardWidthCalculation = 100/columnsCalculation + "vw";
-            textCardWidthCalculation = "30%";
-        } else if (windowSize.width >= 1200 && windowSize.width < 1500) {
-            columnsCalculation = 4;
-            //textCardWidthCalculation = 100/columnsCalculation + "vw";
-            textCardWidthCalculation = "25%";
-        } else if (windowSize.width >= 1500) {
-            columnsCalculation = 5;
-            //textCardWidthCalculation = 100/columnsCalculation + "vw";
-            textCardWidthCalculation = "20%";
-        }
 
         //console.log("Data View exp: " + (await dataView.hasExpired()));
         /**
@@ -90,7 +67,7 @@ Spotfire.initialize(async (mod) => {
         }
 
         let textCardWidth = "";
-        let textCardPadding = "0.5%";
+        let textCardPadding = "5px";
         let textCardMargin = "0";
         let textCardBackgroundColor = rows[0].color().hexCode;
         var rerender = true;
@@ -164,7 +141,7 @@ function createDiv(className, content, width, padding, margin, colour, annotatio
     //textCardDiv.style.float = "left";
     //textCardDiv.style.flex = "1 1 9%";
     //textCardDiv.style.flexBasis = width;
-    textCardDiv.style.flexGrow = "1";
+    //textCardDiv.style.flexGrow = "1";
 
     //console.log(annotation);
     if (annotation !== null) {
