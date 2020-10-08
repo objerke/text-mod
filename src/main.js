@@ -84,6 +84,7 @@ Spotfire.initialize(async (mod) => {
         );
         modDiv.appendChild(returnedObject.fragment);
         prevIndex = returnedObject.startIndex;
+        // Get window size print
         console.log(`windowSize: ${windowSize.width}x${windowSize.height}\r\n`);
 
         console.log("previndex after init: " + prevIndex);
@@ -135,7 +136,7 @@ Spotfire.initialize(async (mod) => {
 function createDiv(className, content, width, padding, margin, colour, annotation) {
     var textCardDiv = document.createElement("div");
     //textCardDiv.style.height = "10%";
-    textCardDiv.style.width = "250px";
+    textCardDiv.style.width = "300px";
     textCardDiv.style.padding = padding;
     textCardDiv.style.margin = margin;
     //textCardDiv.style.float = "left";
@@ -158,8 +159,11 @@ function createDiv(className, content, width, padding, margin, colour, annotatio
         var contentDiv = document.createElement("p");
         contentDiv.style.padding = padding;
         contentDiv.style.margin = margin;
+        contentDiv.style.height = "6em";
+        //contentDiv.style.height = "fit-content"
+
         contentDiv.style.backgroundColor = colour;
-        contentDiv.style.opacity = "0.9";
+        contentDiv.style.opacity = "0.8";
         contentDiv.textContent = content;
         //contentDiv.style.display = "inline-block";
 
@@ -197,7 +201,7 @@ function renderTextCards(rows, width, padding, margin, colour, prevIndex, cardsT
         let textCardContent = getDataValue(rows[index], "Content");
         // textCard not NULL or UNDEFINED
         if (textCardContent) {
-            //var truncatedTextCardContent = truncateString(textCardContent, 125);
+            textCardContent = truncateString(textCardContent, 250);
             var annotation = getDataValue(rows[index], "Annotation");
             colour = rows[index].color().hexCode;
             let newDiv = createDiv("text-card", textCardContent, width, padding, margin, colour, annotation);
