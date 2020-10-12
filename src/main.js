@@ -18,10 +18,13 @@ Spotfire.initialize(async (mod) => {
     const reader = mod.createReader(mod.visualization.data(), mod.windowSize(), mod.property("myProperty"));
 
     const modDiv = findElem("#text-card-container");
+
     /**
      * Store the context.
      */
     const context = mod.getRenderContext();
+
+
     /**
      * Initiate the read loop
      */
@@ -39,6 +42,7 @@ Spotfire.initialize(async (mod) => {
 
         const cardsToLoad = 30;
 
+
         /**
          * Check the data view for errors
          */
@@ -53,6 +57,7 @@ Spotfire.initialize(async (mod) => {
         mod.controls.errorOverlay.hide();
 
         modDiv.style.height = windowSize.height + "px";
+        modDiv.style.width = windowSize.width + "px";
 
         //console.log("Data View exp: " + (await dataView.hasExpired()));
         /**
@@ -66,15 +71,17 @@ Spotfire.initialize(async (mod) => {
             return;
         }
 
-        let textCardWidth = "";
+        let textCardWidth = modDiv.style.width;
         let textCardPadding = "5px";
         let textCardMargin = "0";
+        let textCardHeight = "fit-content"
         let textCardBackgroundColor = rows[0].color().hexCode;
         var rerender = true;
 
         var returnedObject = renderTextCards(
             rows,
             textCardWidth,
+            textCardHeight,
             textCardPadding,
             textCardMargin,
             textCardBackgroundColor,
@@ -82,37 +89,45 @@ Spotfire.initialize(async (mod) => {
             cardsToLoad,
             rerender
         );
-        modDiv.appendChild(returnedObject.fragment);
-        prevIndex = returnedObject.startIndex;
-        // Get window size print
-        console.log(`windowSize: ${windowSize.width}x${windowSize.height}\r\n`);
+        if (returnedObject.fragment == null) {
+            prevIndex = returnedObject.startIndex;
+            return;
+        } else {
+            modDiv.appendChild(returnedObject.fragment);
+            prevIndex = returnedObject.startIndex;
+            // Get window size print
+            console.log(`windowSize: ${windowSize.width}x${windowSize.height}\r\n`);
 
-        console.log("previndex after init: " + prevIndex);
+            console.log("previndex after init: " + prevIndex);
 
-        /*          * Scroll Event Listener          */
-        modDiv.addEventListener("scroll", async function (e) {
-            if (modDiv.scrollHeight - modDiv.scrollTop <= modDiv.clientHeight + 1) {
-                //Check if old data view
-                if (await dataView.hasExpired()) {
-                    return;
+            /*          * Scroll Event Listener          */
+            modDiv.addEventListener("scroll", async function (e) {
+                if (modDiv.scrollHeight - modDiv.scrollTop <= modDiv.clientHeight + 1) {
+                    //Check if old data view
+                    if (await dataView.hasExpired()) {
+                        return;
+                    }
+                    var rerender = false;
+
+                    var returnedObject = renderTextCards(
+                        rows,
+                        textCardWidth,
+                        textCardHeight,
+                        textCardPadding,
+                        textCardMargin,
+                        textCardBackgroundColor,
+                        prevIndex,
+                        cardsToLoad,
+                        rerender
+                    );
+                    modDiv.appendChild(returnedObject.fragment);
+                    prevIndex = returnedObject.startIndex;
+                    console.log("prevIndex after scroll: " + prevIndex);
                 }
-                var rerender = false;
+            });
 
-                var returnedObject = renderTextCards(
-                    rows,
-                    textCardWidth,
-                    textCardPadding,
-                    textCardMargin,
-                    textCardBackgroundColor,
-                    prevIndex,
-                    cardsToLoad,
-                    rerender
-                );
-                modDiv.appendChild(returnedObject.fragment);
-                prevIndex = returnedObject.startIndex;
-                console.log("prevIndex after scroll: " + prevIndex);
-            }
-        });
+
+        }
 
         /*
         var modContainer = document.getElementById("mod-container");
@@ -133,34 +148,29 @@ Spotfire.initialize(async (mod) => {
  * @param {string} className class name of the div element.
  * @param {string | HTMLElement} content Content inside the div
  */
-function createDiv(className, content, width, padding, margin, colour, annotation) {
+function createDiv(className, content, width, height, padding, margin, colour, annotation) {
     var textCardDiv = document.createElement("div");
-    //textCardDiv.style.height = "10%";
-    textCardDiv.style.width = "300px";
+    textCardDiv.style.width = width;
     textCardDiv.style.padding = padding;
     textCardDiv.style.margin = margin;
-    //textCardDiv.style.float = "left";
-    //textCardDiv.style.flex = "1 1 9%";
-    //textCardDiv.style.flexBasis = width;
-    //textCardDiv.style.flexGrow = "1";
+
 
     //console.log(annotation);
     if (annotation !== null) {
-        var annotationDiv = document.createElement("h4");
-        annotationDiv.textContent = annotation;
-        annotationDiv.style.padding = padding;
-        annotationDiv.style.backgroundColor = colour;
-        annotationDiv.style.margin = margin;
+        var annotationElement = document.createElement("h4");
+        annotationElement.textContent = annotation;
+        annotationElement.style.padding = padding;
+        annotationElement.style.backgroundColor = colour;
+        annotationElement.style.margin = margin;
 
-        textCardDiv.appendChild(annotationDiv);
+        textCardDiv.appendChild(annotationElement);
     }
     textCardDiv.classList.add(className);
     if (typeof content === "string") {
         var contentDiv = document.createElement("p");
         contentDiv.style.padding = padding;
         contentDiv.style.margin = margin;
-        contentDiv.style.height = "6em";
-        //contentDiv.style.height = "fit-content"
+        contentDiv.style.height = height;
 
         contentDiv.style.backgroundColor = colour;
         contentDiv.style.opacity = "0.8";
@@ -175,7 +185,7 @@ function createDiv(className, content, width, padding, margin, colour, annotatio
     return textCardDiv;
 }
 
-function renderTextCards(rows, width, padding, margin, colour, prevIndex, cardsToLoad, rerender) {
+function renderTextCards(rows, width, height, padding, margin, colour, prevIndex, cardsToLoad, rerender) {
     if (rerender) {
         document.querySelector("#text-card-container").innerHTML = "";
     }
@@ -198,13 +208,23 @@ function renderTextCards(rows, width, padding, margin, colour, prevIndex, cardsT
         if (index == rows.length) {
             break;
         }
+        console.log(index, startIndex)
         let textCardContent = getDataValue(rows[index], "Content");
+        if (!textCardContent) {
+            var returnObject = {
+                fragment,
+                startIndex: prevIndex
+            };
+            console.log(returnObject)
+            return returnObject;
+        }
         // textCard not NULL or UNDEFINED
+
         if (textCardContent) {
-            textCardContent = truncateString(textCardContent, 250);
+            var truncatedContent = truncateString(textCardContent, 250);
             var annotation = getDataValue(rows[index], "Annotation");
             colour = rows[index].color().hexCode;
-            let newDiv = createDiv("text-card", textCardContent, width, padding, margin, colour, annotation);
+            let newDiv = createDiv("text-card", truncatedContent, width, height, padding, margin, colour, annotation);
             newDiv.onclick = (e) => {
                 console.log(newDiv.textContent);
                 rows[index].mark("Replace");
@@ -215,15 +235,29 @@ function renderTextCards(rows, width, padding, margin, colour, prevIndex, cardsT
             newDiv.onmouseout = (e) => {
                 newDiv.style.color = "";
             };
+            // continue working here. 
+            // reference: https://github.com/TIBCOSoftware/spotfire-mods/blob/master/examples/js-dev-barchart/src/main.js#L144 
+
+            /*newDiv.oncontextmenu = (e) => {
+                controller.contextMenu.show(this, this, [{
+                    text: "Show all text",
+                    enabled: newDiv.style.color
+                }])
+            }*/
+
             fragment.appendChild(newDiv);
         }
     }
     if (!rerender || prevIndex == 0) {
         prevIndex = prevIndex + cardsToLoad;
+        console.log(prevIndex)
     }
 
     console.log("startindex + cardsToLoad: " + prevIndex);
-    var returnObject = { fragment, startIndex: prevIndex };
+    var returnObject = {
+        fragment,
+        startIndex: prevIndex
+    };
     return returnObject;
 }
 
@@ -236,7 +270,7 @@ function getDataValue(element, string) {
         console.log(error.message);
     }
 
-    if (result != null) {
+    if (result !== null) {
         result = result.toString();
     } else {
         return result;

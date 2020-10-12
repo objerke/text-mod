@@ -16,10 +16,4 @@ body {
 #text-card-container {
     overflow-y: scroll;
     overflow-x: hidden;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-content: flex-start;
-    text-align: justify;
 }
