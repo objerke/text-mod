@@ -18,6 +18,7 @@ Spotfire.initialize(async (mod) => {
     const reader = mod.createReader(mod.visualization.data(), mod.windowSize(), mod.property("myProperty"));
 
     const modDiv = findElem("#text-card-container");
+    const topDiv = findElem("#topbar");
 
     /**
      * Store the context.
@@ -64,6 +65,40 @@ Spotfire.initialize(async (mod) => {
             // User interaction caused the data view to expire.
             // Don't clear the mod content here to avoid flickering.
             return;
+        }
+
+        console.log((await dataView.categoricalAxis("Content")).name);
+        console.log((await dataView.categoricalAxis("Content")).hierarchy.levels[0].name);
+
+        var xDiv = document.createElement("div");
+        xDiv.setAttribute("id", "top");
+        var header = document.createElement("h4");
+        header.textContent = "     Content: " + getColumnName(rows[0], "Content");
+
+        xDiv.appendChild(header);
+        topDiv.appendChild(xDiv);
+
+        const { popout } = mod.controls;
+        topDiv.onclick = (e) => {
+            popout.show(
+                {
+                    x: e.x,
+                    y: e.y,
+                    autoClose: true,
+                    alignment: "Bottom",
+                    onChange: popoutChangeHandler
+                },
+                popoutContent
+            );
+        };
+
+        const { section } = popout;
+        const { button } = popout.components;
+        const popoutContent = () => [
+            section({ heading: "I'm a popout!", children: [button({ text: "I'm a button", name: "button" })] })
+        ];
+        function popoutChangeHandler() {
+            console.log("popout");
         }
 
         if ((await dataView.categoricalAxis("Sorting")) != null) {
