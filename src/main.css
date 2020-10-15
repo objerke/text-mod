@@ -35,3 +35,7 @@ body {
 #text-card-container {
     padding: 2px 16px;
 }
+
+svg text {
+    cursor: pointer;
+}

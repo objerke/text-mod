@@ -15,7 +15,12 @@ Spotfire.initialize(async (mod) => {
     /**
      * Create the read function.
      */
-    const reader = mod.createReader(mod.visualization.data(), mod.windowSize(), mod.property("myProperty"));
+    const reader = mod.createReader(
+        mod.visualization.data(),
+        mod.windowSize(),
+        mod.property("myProperty"),
+        mod.property("sorting")
+    );
 
     const modDiv = findElem("#text-card-container");
     const topDiv = findElem("#topbar");
@@ -33,8 +38,9 @@ Spotfire.initialize(async (mod) => {
      * @param {Spotfire.DataView} dataView
      * @param {Spotfire.Size} windowSize
      * @param {Spotfire.ModProperty<string>} prop
+     * @param {Spotfire.ModProperty<string>} sorting
      */
-    async function render(dataView, windowSize, prop) {
+    async function render(dataView, windowSize, prop, sorting) {
         /*
          * NON-GLOBALS
          */
@@ -67,21 +73,27 @@ Spotfire.initialize(async (mod) => {
             return;
         }
 
-        console.log((await dataView.categoricalAxis("Content")).name);
-        console.log((await dataView.categoricalAxis("Content")).hierarchy.levels[0].name);
+        //Create topbar
+        console.log(sorting.value());
+        renderTopbar(topDiv, mod, rows, sorting);
 
-        renderTopbar(topDiv, mod, rows);
-
+        /**
+         * Sorting
+         */
         if ((await dataView.categoricalAxis("Sorting")) != null) {
             rows.sort(function (a, b) {
                 var sortValueA = a.categorical("Sorting").value()[0].key;
                 var sortValueB = b.categorical("Sorting").value()[0].key;
 
-                if (sortValueA < sortValueB) return 1;
-
-                if (sortValueA > sortValueB) return -1;
-
-                return 0;
+                if (sortValueA < sortValueB) {
+                    if (sorting.value().localeCompare("ascending")) return 1;
+                    else return -1;
+                } else if (sortValueA > sortValueB) {
+                    if (sorting.value().localeCompare("ascending")) return -1;
+                    else return 1;
+                } else {
+                    return 0;
+                }
             });
         }
 
@@ -285,13 +297,18 @@ function getColumnName(element, string) {
     return result;
 }
 
-function renderTopbar(topDiv, mod, rows) {
+function renderTopbar(topDiv, mod, rows, sorting) {
+    /**
+     * A helper function to compare a property against a certain value
+     */
+    const is = (property) => (value) => property.value() == value;
+
     document.querySelector("#topbar").innerHTML = "";
 
     var xDiv = document.createElement("div");
     xDiv.setAttribute("id", "top");
     var header = document.createElement("h4");
-    header.textContent = "     Content: " + getColumnName(rows[0], "Content");
+    header.textContent = "Content: " + getColumnName(rows[0], "Content");
 
     xDiv.appendChild(header);
     topDiv.appendChild(xDiv);
@@ -303,7 +320,7 @@ function renderTopbar(topDiv, mod, rows) {
                 x: e.x,
                 y: e.y,
                 autoClose: true,
-                alignment: "Bottom",
+                alignment: "Left",
                 onChange: popoutChangeHandler
             },
             popoutContent
@@ -311,12 +328,37 @@ function renderTopbar(topDiv, mod, rows) {
     };
 
     const { section } = popout;
-    const { button } = popout.components;
+    //const { button } = popout.components;
+    const { radioButton } = popout.components;
+    /**
+     * Create popout content
+     */
     const popoutContent = () => [
-        section({ heading: "I'm a popout!", children: [button({ text: "I'm a button", name: "button" })] })
+        section({
+            heading: "Sorting",
+            children: [
+                radioButton({
+                    name: sorting.name,
+                    text: "Descending",
+                    value: "descending",
+                    checked: is(sorting)("descending")
+                }),
+                radioButton({
+                    name: sorting.name,
+                    text: "Ascending",
+                    value: "ascending",
+                    checked: is(sorting)("ascending")
+                })
+            ]
+        })
     ];
-    function popoutChangeHandler() {
-        console.log("popout");
+
+    /**
+     * Popout change handler
+     * @param {Spotfire.PopoutComponentEvent} property
+     */
+    function popoutChangeHandler({ name, value }) {
+        name == sorting.name && sorting.set(value);
     }
 }
 

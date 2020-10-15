@@ -9,6 +9,11 @@
             "name": "myProperty",
             "type": "string",
             "defaultValue": "myValue"
+        },
+        {
+            "name": "sorting",
+            "type": "string",
+            "defaultValue": "descending"
         }
     ],
     "dataViewDefinition": {
