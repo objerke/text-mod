@@ -70,36 +70,7 @@ Spotfire.initialize(async (mod) => {
         console.log((await dataView.categoricalAxis("Content")).name);
         console.log((await dataView.categoricalAxis("Content")).hierarchy.levels[0].name);
 
-        var xDiv = document.createElement("div");
-        xDiv.setAttribute("id", "top");
-        var header = document.createElement("h4");
-        header.textContent = "     Content: " + getColumnName(rows[0], "Content");
-
-        xDiv.appendChild(header);
-        topDiv.appendChild(xDiv);
-
-        const { popout } = mod.controls;
-        topDiv.onclick = (e) => {
-            popout.show(
-                {
-                    x: e.x,
-                    y: e.y,
-                    autoClose: true,
-                    alignment: "Bottom",
-                    onChange: popoutChangeHandler
-                },
-                popoutContent
-            );
-        };
-
-        const { section } = popout;
-        const { button } = popout.components;
-        const popoutContent = () => [
-            section({ heading: "I'm a popout!", children: [button({ text: "I'm a button", name: "button" })] })
-        ];
-        function popoutChangeHandler() {
-            console.log("popout");
-        }
+        renderTopbar(topDiv, mod, rows);
 
         if ((await dataView.categoricalAxis("Sorting")) != null) {
             rows.sort(function (a, b) {
@@ -312,6 +283,41 @@ function getColumnName(element, string) {
         return result;
     }
     return result;
+}
+
+function renderTopbar(topDiv, mod, rows) {
+    document.querySelector("#topbar").innerHTML = "";
+
+    var xDiv = document.createElement("div");
+    xDiv.setAttribute("id", "top");
+    var header = document.createElement("h4");
+    header.textContent = "     Content: " + getColumnName(rows[0], "Content");
+
+    xDiv.appendChild(header);
+    topDiv.appendChild(xDiv);
+
+    const { popout } = mod.controls;
+    topDiv.onclick = (e) => {
+        popout.show(
+            {
+                x: e.x,
+                y: e.y,
+                autoClose: true,
+                alignment: "Bottom",
+                onChange: popoutChangeHandler
+            },
+            popoutContent
+        );
+    };
+
+    const { section } = popout;
+    const { button } = popout.components;
+    const popoutContent = () => [
+        section({ heading: "I'm a popout!", children: [button({ text: "I'm a button", name: "button" })] })
+    ];
+    function popoutChangeHandler() {
+        console.log("popout");
+    }
 }
 
 /** @returns {HTMLElement} */
