@@ -74,7 +74,6 @@ Spotfire.initialize(async (mod) => {
         }
 
         //Create topbar
-        console.log(sorting.value());
         renderTopbar(topDiv, mod, rows, sorting);
 
         /**
@@ -299,6 +298,16 @@ function getColumnName(element, string) {
     return result;
 }
 
+/**
+ * Render a topbar that shows content, annotation and sort order.
+ * Selecting the div gives a popout component where user can select sort by 'descending' or 'ascending'
+ *
+ * @param {*} topDiv
+ * @param {*} mod
+ * @param {*} rows
+ * @param {*} sorting
+ *
+ */
 function renderTopbar(topDiv, mod, rows, sorting) {
     /**
      * A helper function to compare a property against a certain value
@@ -311,6 +320,23 @@ function renderTopbar(topDiv, mod, rows, sorting) {
     xDiv.setAttribute("id", "top");
     var header = document.createElement("h4");
     header.textContent = "Content: " + getColumnName(rows[0], "Content");
+
+    //Get columun annotation name
+    header.textContent += " | Annotation: ";
+    try {
+        header.textContent += rows[0].categorical("Annotation").value()[0]._node.__hierarchy.levels[0].name;
+    } catch {
+        header.textContent += "None";
+    }
+
+    //Get columun Sorting name
+    header.textContent += " | Sort by: ";
+    try {
+        header.textContent +=
+            rows[0].categorical("Sorting").value()[0]._node.__hierarchy.levels[0].name + " " + sorting.value();
+    } catch {
+        header.textContent += "None";
+    }
 
     xDiv.appendChild(header);
     topDiv.appendChild(xDiv);
