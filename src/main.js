@@ -362,6 +362,13 @@ function renderTopbar(topDiv, mod, rows, sorting) {
     function popoutChangeHandler({ name, value }) {
         name == sorting.name && sorting.set(value);
     }
+
+    topDiv.onmouseover = (e) => {
+        topDiv.style.backgroundColor = "#F5F5F5";
+    };
+    topDiv.onmouseout = (e) => {
+        topDiv.style.backgroundColor = "white";
+    };
 }
 
 /** @returns {HTMLElement} */

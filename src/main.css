@@ -37,6 +37,6 @@ body {
     padding: 2px 16px;
 }
 
-svg text {
+#topbar {
     cursor: pointer;
 }
