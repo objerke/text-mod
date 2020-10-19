@@ -82,7 +82,8 @@ Spotfire.initialize(async (mod) => {
          * Sorting
          */
         if ((await dataView.categoricalAxis("Sorting")) != null) {
-            sortRows(rows, sorting);
+            var sortByInputs = (await dataView.hierarchy("Sorting")).levels.length;
+            sortRows(rows, sorting, sortByInputs);
         }
 
         let textCardHeight = "fit-content";
@@ -457,19 +458,28 @@ function createCopyButton(newDiv) {
  * @param {*} rows
  * @param {*} sorting
  */
-function sortRows(rows, sorting) {
+function sortRows(rows, sorting, sortByInputs) {
     rows.sort(function (a, b) {
-        var sortValueA = a.categorical("Sorting").value()[0].key;
-        var sortValueB = b.categorical("Sorting").value()[0].key;
+        let sortValueA = [];
+        let sortValueB = [];
 
-        if (sortValueA < sortValueB) {
-            if (sorting.value().localeCompare("ascending")) return 1;
-            else return -1;
-        } else if (sortValueA > sortValueB) {
-            if (sorting.value().localeCompare("ascending")) return -1;
-            else return 1;
-        } else {
-            return 0;
+        for (let i = 0; i < sortByInputs; i++) {
+            sortValueA[i] = a.categorical("Sorting").value()[i].key;
+            sortValueB[i] = b.categorical("Sorting").value()[i].key;
+        }
+
+        //console.log(sortByInputs);
+        for (let i = 0; i < sortByInputs; i++) {
+            if (sortValueA[i] < sortValueB[i]) {
+                if (sorting.value().localeCompare("ascending")) return 1;
+                else return -1;
+            } else if (sortValueA[i] > sortValueB[i]) {
+                if (sorting.value().localeCompare("ascending")) return -1;
+                else return 1;
+            } else {
+                //Base case, equal and last sort selection
+                if (i == sortByInputs - 1) return 0;
+            }
         }
     });
 }
