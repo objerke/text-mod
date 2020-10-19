@@ -81,6 +81,7 @@ Spotfire.initialize(async (mod) => {
         /**
          * Sorting
          */
+        console.log(rows[0].categorical("Sorting").value()[0].key);
         if ((await dataView.categoricalAxis("Sorting")) != null) {
             var sortByInputs = (await dataView.hierarchy("Sorting")).levels.length;
             sortRows(rows, sorting, sortByInputs);
@@ -468,7 +469,6 @@ function sortRows(rows, sorting, sortByInputs) {
             sortValueB[i] = b.categorical("Sorting").value()[i].key;
         }
 
-        //console.log(sortByInputs);
         for (let i = 0; i < sortByInputs; i++) {
             if (sortValueA[i] < sortValueB[i]) {
                 if (sorting.value().localeCompare("ascending")) return 1;
