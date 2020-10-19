@@ -73,27 +73,16 @@ Spotfire.initialize(async (mod) => {
             return;
         }
 
-        //Create topbar
+        /**
+         * Render topbar
+         */
         renderTopbar(topDiv, mod, rows, sorting);
 
         /**
          * Sorting
          */
         if ((await dataView.categoricalAxis("Sorting")) != null) {
-            rows.sort(function (a, b) {
-                var sortValueA = a.categorical("Sorting").value()[0].key;
-                var sortValueB = b.categorical("Sorting").value()[0].key;
-
-                if (sortValueA < sortValueB) {
-                    if (sorting.value().localeCompare("ascending")) return 1;
-                    else return -1;
-                } else if (sortValueA > sortValueB) {
-                    if (sorting.value().localeCompare("ascending")) return -1;
-                    else return 1;
-                } else {
-                    return 0;
-                }
-            });
+            sortRows(rows, sorting);
         }
 
         let textCardHeight = "fit-content";
@@ -460,4 +449,27 @@ function createCopyButton(newDiv) {
     newButton.style.float = "left";
     newButton.title = "Copy to clipboard";
     newDiv.appendChild(newButton);
+}
+
+/**
+ * Sort rows in descending or ascending order, depending on set sroting property
+ *
+ * @param {*} rows
+ * @param {*} sorting
+ */
+function sortRows(rows, sorting) {
+    rows.sort(function (a, b) {
+        var sortValueA = a.categorical("Sorting").value()[0].key;
+        var sortValueB = b.categorical("Sorting").value()[0].key;
+
+        if (sortValueA < sortValueB) {
+            if (sorting.value().localeCompare("ascending")) return 1;
+            else return -1;
+        } else if (sortValueA > sortValueB) {
+            if (sorting.value().localeCompare("ascending")) return -1;
+            else return 1;
+        } else {
+            return 0;
+        }
+    });
 }
