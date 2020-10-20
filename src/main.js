@@ -145,7 +145,7 @@ function createTextCard(content, colour, annotation, windowSize) {
     textCardWrapper.setAttribute("id", "text-card-wrapper");
     var textCardDiv = document.createElement("div");
     textCardDiv.setAttribute("id", "text-card");
-    textCardDiv.style.boxShadow = "0 0 0 1px #c2c6d1, 0 0 0 2px transparent, 0 0 0 3px transparent;";
+
     //add sidebar to text card
     var sidebar = document.createElement("div");
     sidebar.setAttribute("id", "text-card-sidebar");
@@ -159,8 +159,7 @@ function createTextCard(content, colour, annotation, windowSize) {
         var headerContent = document.createElement("div");
         headerContent.setAttribute("class", "annotation-content");
         headerContent.textContent = annotation;
-        //header.style.backgroundColor = colour;
-        //header.style.borderBottom = "grey";
+
         header.appendChild(headerContent);
         textCardDiv.appendChild(header);
 
@@ -180,7 +179,7 @@ function createTextCard(content, colour, annotation, windowSize) {
     }
 
     requestAnimationFrame(() => {
-        sidebar.style.height = textCardWrapper.scrollHeight + "px";
+        sidebar.style.height = textCardWrapper.offsetHeight + "px";
     });
     textCardWrapper.appendChild(textCardDiv);
 
