@@ -37,7 +37,7 @@ Spotfire.initialize(async (mod) => {
         /*
          * NON-GLOBALS
          */
-        const cardsToLoad = 100;
+        const cardsToLoad = 500;
 
         /**
          * Check the data view for errors
@@ -332,6 +332,7 @@ function createCopyButton(newDiv) {
     newButton.appendChild(myImage);
     newButton.onclick = (e) => {
         var text = document.getElementById("text-card-paragraph").textContent;
+
         textToClipboard(text);
     };
     var buttonHeight = "3em";
