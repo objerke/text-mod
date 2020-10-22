@@ -90,7 +90,6 @@ Spotfire.initialize(async (mod) => {
         var modContainer = document.getElementById("text-card-container");
 
         modContainer.onclick = () => {
-            console.log("inside clearmarking");
             dataView.clearMarking();
         };
 
@@ -98,8 +97,8 @@ Spotfire.initialize(async (mod) => {
             console.log(e.key.toString());
             var selectedText = getSelectedText();
             if ((e.ctrlKey || e.metaKey) && e.key === "c" && selectedText !== "") {
-                console.log(selectedText);
-                console.log("inside if");
+                //console.log(selectedText);
+                //console.log("inside if");
                 textToClipboard(selectedText);
                 selectedText = "";
             }
@@ -122,7 +121,7 @@ Spotfire.initialize(async (mod) => {
                 }
                 var rerender = false;
 
-                var returnedObject = renderTextCards(rows, prevIndex, cardsToLoad, rerender, windowSize);
+                var returnedObject = renderTextCards(rows, prevIndex, cardsToLoad, rerender, windowSize, mod);
                 modDiv.appendChild(returnedObject.fragment);
                 prevIndex = returnedObject.startIndex;
             }
@@ -139,7 +138,7 @@ Spotfire.initialize(async (mod) => {
  * Create a div element.
  * @param {string | HTMLElement} content Content inside the div
  */
-function createTextCard(content, colour, annotation, windowSize) {
+function createTextCard(content, colour, annotation, windowSize, markObject) {
     //create textCard
     var textCardWrapper = document.createElement("div");
     textCardWrapper.setAttribute("id", "text-card-wrapper");
@@ -160,6 +159,9 @@ function createTextCard(content, colour, annotation, windowSize) {
         headerContent.setAttribute("class", "annotation-content");
         headerContent.textContent = annotation;
 
+        //Check if row is marked and check if all rows are marked. If row is not marked and all rows are not marked, decrease opacity
+        if (!markObject.row && !markObject.allRows) header.style.color = "rgba(0, 0, 0, 0.5)";
+
         header.appendChild(headerContent);
         textCardDiv.appendChild(header);
 
@@ -175,17 +177,29 @@ function createTextCard(content, colour, annotation, windowSize) {
         contentParagraph.textContent = content;
         contentParagraph.style.maxHeight = windowSize.height * 0.5 + "px";
 
+        //Check if row is marked and check if all rows are marked. If row is not marked and all rows are not marked, decrease opacity
+        if (!markObject.row && !markObject.allRows) contentParagraph.style.color = "rgba(0, 0, 0, 0.5)";
+
         textCardDiv.appendChild(contentParagraph);
     }
 
     requestAnimationFrame(() => {
         sidebar.style.height = textCardWrapper.offsetHeight + "px";
     });
-    textCardWrapper.appendChild(textCardDiv);
 
+    textCardWrapper.appendChild(textCardDiv);
     return textCardWrapper;
 }
 
+/**
+ * Render Text Cards
+ * @param {*} rows
+ * @param {*} prevIndex
+ * @param {*} cardsToLoad
+ * @param {*} rerender
+ * @param {*} windowSize
+ * @param {*} mod
+ */
 function renderTextCards(rows, prevIndex, cardsToLoad, rerender, windowSize, mod) {
     if (rerender) {
         document.querySelector("#text-card-container").innerHTML = "";
@@ -201,6 +215,10 @@ function renderTextCards(rows, prevIndex, cardsToLoad, rerender, windowSize, mod
             whatToLoad = cardsToLoad;
         }
     }
+
+    //Check if all row are marked
+    var allRowsMarked = isAllRowsMarked(rows);
+
     for (let index = startIndex; index < whatToLoad; index++) {
         // console.log("Rows: " + rows.length)
         if (index >= rows.length) {
@@ -211,14 +229,17 @@ function renderTextCards(rows, prevIndex, cardsToLoad, rerender, windowSize, mod
         if (textCardContent) {
             var annotation = getDataValue(rows[index], "Annotation");
             var color = rows[index].color().hexCode;
-            let newDiv = createTextCard(textCardContent, color, annotation, windowSize);
+            var markObject = {
+                row: rows[index].isMarked(),
+                allRows: allRowsMarked
+            };
+            let newDiv = createTextCard(textCardContent, color, annotation, windowSize, markObject);
 
             //document.getElementById("text-card-sidebar").style.height = newDiv.style.height;
 
             newDiv.onclick = (e) => {
                 var selectedText = getSelectedText();
                 if (selectedText === "") {
-                    console.log("inside marking if");
                     e.stopPropagation();
                     rows[index].mark("Toggle");
                 }
@@ -227,12 +248,12 @@ function renderTextCards(rows, prevIndex, cardsToLoad, rerender, windowSize, mod
                 mod.controls.tooltip.show(
                     getColumnName(rows[index], "Tooltip") + ": " + getDataValue(rows[index], "Tooltip")
                 );
-                createCopyButton(newDiv);
+                createCopyButton(newDiv.firstChild);
             };
             newDiv.onmouseleave = (e) => {
                 mod.controls.tooltip.hide();
-                var button = document.getElementById("image-button");
-                newDiv.removeChild(button);
+                var button = document.getElementById("img-button");
+                newDiv.firstChild.removeChild(button);
             };
             fragment.appendChild(newDiv);
         }
@@ -316,38 +337,52 @@ function textToClipboard(text) {
     var temporaryCopyElement = document.createElement("textarea");
     document.body.appendChild(temporaryCopyElement);
     temporaryCopyElement.value = text;
+    console.log(text);
     temporaryCopyElement.select();
     document.execCommand("copy");
     document.body.removeChild(temporaryCopyElement);
 }
 
 function createCopyButton(newDiv) {
+    // BUTTON
     var newButton = document.createElement("button");
-    newButton.setAttribute("id", "image-button");
-    var myImage = document.createElement("img");
-    myImage.src = "assets/copy-icon.svg";
-    myImage.style.height = "3em";
-    myImage.style.width = "2em";
 
-    newButton.appendChild(myImage);
+    newButton.title = "Copy to Clipboard";
+    newButton.setAttribute("id", "img-button");
+
+    //TODO: Create SVG here
+    var svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svgNode.setAttributeNS(null, "viewBox", "0 0 16 16");
+
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    svg.setAttributeNS(null, "width", "100%");
+    svg.setAttributeNS(null, "height", "100%");
+    svg.setAttributeNS(null, "fill", "#797b85");
+    svg.setAttributeNS(null, "d", "M11.259 1H6v3H2v11h10v-3h2V4.094zM8 4h2v1H8zm3 10H3V5h3v7h5zm1-5H8V8h4zm0-2H8V6h4z");
+
     newButton.onclick = (e) => {
-        var text = document.getElementById("text-card-paragraph").textContent;
-
+        svg.setAttributeNS(null, "fill", "#61646b");
+        // var text = document.getElementById("text-card-paragraph").textContent;
+        var text = newDiv.querySelector("#text-card-paragraph").textContent;
         textToClipboard(text);
+        e.stopPropagation();
     };
-    var buttonHeight = "3em";
-    var buttonWidth = "3em";
-    newButton.style.height = buttonHeight;
-    newButton.style.width = buttonWidth;
-    newButton.style.position = "absolute";
-    //newButton.style.left="0px";
-    newButton.style.bottom = "1em";
-    newButton.style.zIndex = "10";
-    // newButton.style.verticalAlign = "top";
-    newButton.style.float = "right";
-    newButton.style.right = "2em";
-    newButton.style.top = "2em";
-    newButton.title = "Copy to clipboard";
+    newButton.onmouseover = (e) => {
+        svg.setAttributeNS(null, "fill", "#61646b");
+    };
+    newButton.onfocus = (e) => {
+        svg.setAttributeNS(null, "fill", "#797b85");
+    };
+    newButton.onmouseleave = (e) => {
+        svg.setAttributeNS(null, "fill", "#797b85");
+    };
+    newButton.onselect = (e) => {
+        svg.setAttributeNS(null, "fill", "#3050EF");
+    };
+
+    svgNode.appendChild(svg);
+
+    newButton.appendChild(svgNode);
     newDiv.appendChild(newButton);
 }
 
@@ -366,4 +401,15 @@ function sortRows(rows) {
 
         return 0;
     });
+}
+
+/**
+ * Check if all rows are marked
+ * @param {*} rows
+ */
+function isAllRowsMarked(rows) {
+    for (var i = 0; i < rows.length; i++) {
+        if (rows[i].isMarked()) return false;
+    }
+    return true;
 }
